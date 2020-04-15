@@ -4,8 +4,6 @@ namespace App\Http\Controllers\Buyer;
 
 use App\Buyer;
 use App\Http\Controllers\ApiController;
-use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 
 class BuyerController extends ApiController
 {
@@ -13,6 +11,7 @@ class BuyerController extends ApiController
     {
         parent::__construct();
         $this->middleware('scope:read-general')->only('index');
+        $this->middleware('can:view,buyer')->only('show');
     }
 
     /**
@@ -22,6 +21,7 @@ class BuyerController extends ApiController
      */
     public function index()
     {
+        $this->allowedAdminAction();
         $buyers = Buyer::has('transactions')->get();
         return $this->showAll($buyers);
     }

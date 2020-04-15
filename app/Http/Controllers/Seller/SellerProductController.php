@@ -6,6 +6,7 @@ use App\Http\Controllers\ApiController;
 use App\Product;
 use App\Seller;
 use App\User;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpKernel\Exception\HttpException;
@@ -15,8 +16,9 @@ class SellerProductController extends ApiController
     public function __construct()
     {
         parent::__construct();
+        $this->middleware('scope:manage-products')->except('index');
     }
-    
+
     /**
      * Display a listing of the resource.
      *
@@ -24,8 +26,12 @@ class SellerProductController extends ApiController
      */
     public function index(Seller $seller)
     {
-        $products = $seller->products;
-        return $this->showAll($products);
+        if (request()->user()->tokenCan('read-general') || request()->user()->tokenCan('manage-products')) {
+            $products = $seller->products;
+            return $this->showAll($products);
+        }
+
+        throw new AuthorizationException('Invalid scope(s)')
     }
 
     /**
